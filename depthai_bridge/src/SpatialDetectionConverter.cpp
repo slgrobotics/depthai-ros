@@ -124,11 +124,12 @@ void SpatialDetectionConverter::toRosVisionMsg(std::shared_ptr<dai::SpatialImgDe
 
         opDetectionMsg.detections[i].results[0].hypothesis.class_id = std::to_string(inNetData->detections[i].label);
         opDetectionMsg.detections[i].results[0].hypothesis.score = inNetData->detections[i].confidence;
-        opDetectionMsg.detections[i].bbox.center.position.x = xCenter;
-        opDetectionMsg.detections[i].bbox.center.position.y = yCenter;
-        opDetectionMsg.detections[i].bbox.size.x = xSize;
-        opDetectionMsg.detections[i].bbox.size.y = ySize;
-        opDetectionMsg.detections[i].bbox.size.z = 0.01;
+        opDetectionMsg.detections[i].bbox.center.position.x = inNetData->detections[i].spatialCoordinates.x / 1000; //xCenter;
+        opDetectionMsg.detections[i].bbox.center.position.y = inNetData->detections[i].spatialCoordinates.y / 1000; //yCenter;
+        opDetectionMsg.detections[i].bbox.center.position.z = inNetData->detections[i].spatialCoordinates.z / 1000; //yCenter;
+        opDetectionMsg.detections[i].bbox.size.x = 0.5; //xSize;
+        opDetectionMsg.detections[i].bbox.size.y = 0.5; //ySize;
+        opDetectionMsg.detections[i].bbox.size.z = 0.5; //0.01;
 
         // converting mm to meters since per ros rep-103 lenght should always be in meters
         opDetectionMsg.detections[i].results[0].pose.pose.position.x = inNetData->detections[i].spatialCoordinates.x / 1000;
