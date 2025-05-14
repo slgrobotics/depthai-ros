@@ -28,6 +28,10 @@ https://github.com/slgrobotics/depthai_rospi/tree/main/rviz
 
 ![Screenshot from 2025-05-13 21-39-40](https://github.com/user-attachments/assets/fd6c5c40-aacd-4704-82a8-28845a2c333a)
 
+**Note:**
+- OAK-D cameras require ~1 Amp current from 5 V power source and _absolutely_ need a "[power T-Tap](https://github.com/slgrobotics/robots_bringup/blob/main/Docs/Sensors/OAK-D_Lite.md#important-power-consumption-and-usb-connection-requirements)".
+- The network load in the above example is 700 Mbits/sec, your WiFi is unlikely to bear that. See [this guide](https://github.com/slgrobotics/robots_bringup/blob/main/Docs/Sensors/WiFi_Logger_Visualizer.md).
+
 For more info see https://github.com/slgrobotics/robots_bringup/blob/main/Docs/Sensors/OAK-D_Lite.md#spatial-examples
 
 -------------------
