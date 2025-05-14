@@ -116,25 +116,39 @@ void SpatialDetectionConverter::toRosVisionMsg(std::shared_ptr<dai::SpatialImgDe
             yMax = inNetData->detections[i].ymax * _height;
         }
 
-        float xSize = xMax - xMin;
+        float xSize = xMax - xMin; // width of the bounding box in pixels
         float ySize = yMax - yMin;
-        float xCenter = xMin + xSize / 2;
-        float yCenter = yMin + ySize / 2;
+        //float xCenter = xMin + xSize / 2; // center of the bounding box in pixels
+        //float yCenter = yMin + ySize / 2;
         opDetectionMsg.detections[i].results.resize(1);
 
         opDetectionMsg.detections[i].results[0].hypothesis.class_id = std::to_string(inNetData->detections[i].label);
         opDetectionMsg.detections[i].results[0].hypothesis.score = inNetData->detections[i].confidence;
-        opDetectionMsg.detections[i].bbox.center.position.x = inNetData->detections[i].spatialCoordinates.x / 1000; //xCenter;
-        opDetectionMsg.detections[i].bbox.center.position.y = inNetData->detections[i].spatialCoordinates.y / 1000; //yCenter;
-        opDetectionMsg.detections[i].bbox.center.position.z = inNetData->detections[i].spatialCoordinates.z / 1000; //yCenter;
-        opDetectionMsg.detections[i].bbox.size.x = 0.5; //xSize;
-        opDetectionMsg.detections[i].bbox.size.y = 0.5; //ySize;
-        opDetectionMsg.detections[i].bbox.size.z = 0.5; //0.01;
+        
+        // 3D bounding box values in meters:
+        float xScale = xSize / _width; // relative to image width
+        float yScale = ySize / _height;
 
-        // converting mm to meters since per ros rep-103 lenght should always be in meters
-        opDetectionMsg.detections[i].results[0].pose.pose.position.x = inNetData->detections[i].spatialCoordinates.x / 1000;
-        opDetectionMsg.detections[i].results[0].pose.pose.position.y = inNetData->detections[i].spatialCoordinates.y / 1000;
-        opDetectionMsg.detections[i].results[0].pose.pose.position.z = inNetData->detections[i].spatialCoordinates.z / 1000;
+        // converting mm to meters since per ros rep-103 length should always be in meters
+        float xCenterMeters = inNetData->detections[i].spatialCoordinates.x / 1000;
+        float yCenterMeters = inNetData->detections[i].spatialCoordinates.y / 1000;
+        float zCenterMeters = inNetData->detections[i].spatialCoordinates.z / 1000;
+
+        float bbScaleFactor = 1.5; // scale factor for bounding box size
+        float xSizeMeters = bbScaleFactor * xScale;
+        float ySizeMeters = bbScaleFactor * yScale;
+        float zSizeMeters = 0.4; // fixed depth for bounding box, no info from model
+
+        opDetectionMsg.detections[i].bbox.center.position.x = xCenterMeters; //xCenter;
+        opDetectionMsg.detections[i].bbox.center.position.y = yCenterMeters; //yCenter;
+        opDetectionMsg.detections[i].bbox.center.position.z = zCenterMeters; //yCenter;
+        opDetectionMsg.detections[i].bbox.size.x = xSizeMeters; //xSize;
+        opDetectionMsg.detections[i].bbox.size.y = ySizeMeters; //ySize;
+        opDetectionMsg.detections[i].bbox.size.z = zSizeMeters; //0.01;
+
+        opDetectionMsg.detections[i].results[0].pose.pose.position.x = xCenterMeters;
+        opDetectionMsg.detections[i].results[0].pose.pose.position.y = yCenterMeters;
+        opDetectionMsg.detections[i].results[0].pose.pose.position.z = zCenterMeters;
     }
 
     opDetectionMsgs.push_back(opDetectionMsg);
