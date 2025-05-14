@@ -1,5 +1,9 @@
 ### my fork with properly published 3D boundary boxes
 
+OAK-D Lite camera setup:
+
+https://github.com/slgrobotics/robots_bringup/blob/main/Docs/Sensors/OAK-D_Lite.md
+
 Cloning and building:
 ```
 mkdir -p ~/depthai_ws/src
@@ -13,6 +17,8 @@ colcon build --parallel-workers=1 --executor sequential
 ```
 Running it:
 ```
+cd ~/depthai_ws
+source install/setup.bash
 ros2 launch depthai_filters spatial_bb.launch.py
 ```
 Run `rviz2` with the following parameter file to start with:
@@ -21,6 +27,10 @@ https://github.com/slgrobotics/depthai_rospi/tree/main/rviz
 ```
 
 ![Screenshot from 2025-05-13 21-39-40](https://github.com/user-attachments/assets/fd6c5c40-aacd-4704-82a8-28845a2c333a)
+
+For more info see https://github.com/slgrobotics/robots_bringup/blob/main/Docs/Sensors/OAK-D_Lite.md#spatial-examples
+
+-------------------
 
 Original README follows:
 
