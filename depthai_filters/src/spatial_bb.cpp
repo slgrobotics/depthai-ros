@@ -56,7 +56,7 @@ void SpatialBB::overlayCB(const sensor_msgs::msg::Image::ConstSharedPtr& preview
         utils::addTextToFrame(previewMat, labelStr, x1 + 10, y1 + 10);
         auto confidence = detection.results[0].hypothesis.score;
         std::stringstream confStr;
-        confStr << std::fixed << std::setprecision(2) << confidence * 100;
+        confStr << std::fixed << std::setprecision(0) << confidence * 100;
         utils::addTextToFrame(previewMat, confStr.str(), x1 + 10, y1 + 40);
 
         std::stringstream depthX;
