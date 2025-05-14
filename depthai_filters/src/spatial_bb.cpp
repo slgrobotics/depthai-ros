@@ -60,14 +60,15 @@ void SpatialBB::overlayCB(const sensor_msgs::msg::Image::ConstSharedPtr& preview
         utils::addTextToFrame(previewMat, confStr.str(), x1 + 10, y1 + 40);
 
         std::stringstream depthX;
-        depthX << "X: " << detection.results[0].pose.pose.position.x << " mm";
+        depthX << "X: " << std::fixed << std::setprecision(2) << detection.results[0].pose.pose.position.x << " m";
+        //depthX << "X: " << detection.results[0].pose.pose.position.x << " m";
         utils::addTextToFrame(previewMat, depthX.str(), x1 + 10, y1 + 60);
 
         std::stringstream depthY;
-        depthY << "Y: " << detection.results[0].pose.pose.position.y << " mm";
+        depthY << "Y: " << std::fixed << std::setprecision(2) << detection.results[0].pose.pose.position.y << " m";
         utils::addTextToFrame(previewMat, depthY.str(), x1 + 10, y1 + 75);
         std::stringstream depthZ;
-        depthZ << "Z: " << detection.results[0].pose.pose.position.z << " mm";
+        depthZ << "Z: " << std::fixed << std::setprecision(2) << detection.results[0].pose.pose.position.z << " m";
         utils::addTextToFrame(previewMat, depthZ.str(), x1 + 10, y1 + 90);
 
         // Marker publishing
