@@ -26,58 +26,58 @@ void SpatialBB::overlayCB(const sensor_msgs::msg::Image::ConstSharedPtr& preview
                           const sensor_msgs::msg::CameraInfo::ConstSharedPtr& info,
                           const vision_msgs::msg::Detection3DArray::ConstSharedPtr& detections) {
     cv::Mat previewMat = utils::msgToMat(this->get_logger(), preview, sensor_msgs::image_encodings::BGR8);
-    auto blue = cv::Scalar(255, 0, 0);
 
-    double ratioY = double(info->height) / double(previewMat.rows);
-    double ratioX;
-    int offsetX;
-    if(desqueeze) {
-        ratioX = double(info->width) / double(previewMat.cols);
-        offsetX = 0;
-    } else {
-        ratioX = ratioY;
-        offsetX = (info->width - info->height) / 2.0;
-    }
-    int offsetY = 0;
     visualization_msgs::msg::MarkerArray marker_array;
-    double fx = info->k[0];
-    double fy = info->k[4];
-    double cx = info->k[2];
-    double cy = info->k[5];
     int id = 0;
-    for(auto& detection : detections->detections) {
-        auto x1 = detection.bbox.center.position.x - detections->detections[0].bbox.size.x / 2.0;
-        auto x2 = detection.bbox.center.position.x + detections->detections[0].bbox.size.x / 2.0;
-        auto y1 = detection.bbox.center.position.y - detections->detections[0].bbox.size.y / 2.0;
-        auto y2 = detection.bbox.center.position.y + detections->detections[0].bbox.size.y / 2.0;
 
-        cv::rectangle(previewMat, cv::Rect(cv::Point(x1, y1), cv::Point(x2, y2)), blue);
-        auto labelStr = labelMap[stoi(detection.results[0].hypothesis.class_id)];
-        utils::addTextToFrame(previewMat, labelStr, x1 + 10, y1 + 10);
+    float xText = 5.0;
+    float yText = 10.0;
+    float yTextStep = 14.0;
+    float yTextShift = 0.0;
+
+    for(auto& detection : detections->detections) {
+
+        if(detection.results.size() == 0) {
+            continue;
+        }
+
         auto confidence = detection.results[0].hypothesis.score;
+        if(confidence < 0.5) {
+            continue;
+        }
+
+        // Overlay image publishing (topic "/overlay") for 2D visualization:
+        auto labelStr = labelMap[stoi(detection.results[0].hypothesis.class_id)];
         std::stringstream confStr;
-        confStr << std::fixed << std::setprecision(0) << confidence * 100;
-        utils::addTextToFrame(previewMat, confStr.str(), x1 + 10, y1 + 40);
+        confStr << labelStr << " : " << std::fixed << std::setprecision(0) << confidence * 100 << "%";
+        utils::addTextToFrame(previewMat, confStr.str(), xText, yText + yTextShift);
+        yTextShift += yTextStep;
 
         std::stringstream depthX;
         depthX << "X: " << std::fixed << std::setprecision(2) << detection.results[0].pose.pose.position.x << " m";
-        //depthX << "X: " << detection.results[0].pose.pose.position.x << " m";
-        utils::addTextToFrame(previewMat, depthX.str(), x1 + 10, y1 + 60);
+        utils::addTextToFrame(previewMat, depthX.str(), xText, yText + yTextShift);
+        yTextShift += yTextStep;
 
         std::stringstream depthY;
         depthY << "Y: " << std::fixed << std::setprecision(2) << detection.results[0].pose.pose.position.y << " m";
-        utils::addTextToFrame(previewMat, depthY.str(), x1 + 10, y1 + 75);
+        utils::addTextToFrame(previewMat, depthY.str(), xText, yText + yTextShift);
+        yTextShift += yTextStep;
+
         std::stringstream depthZ;
         depthZ << "Z: " << std::fixed << std::setprecision(2) << detection.results[0].pose.pose.position.z << " m";
-        utils::addTextToFrame(previewMat, depthZ.str(), x1 + 10, y1 + 90);
+        utils::addTextToFrame(previewMat, depthZ.str(), xText, yText + yTextShift);
+        yTextShift += yTextStep + 3.0;  // Add some space after the last text
 
-        // Marker publishing
+        // Marker array publishing (topic "/spatial_bb") for limited 3D visualization:
         const auto& bbox = detection.bbox;
-        auto bbox_size_x = bbox.size.x * ratioX;
-        auto bbox_size_y = bbox.size.y * ratioY;
+        auto bbox_size_x = bbox.size.x;
+        auto bbox_size_y = bbox.size.y;
+        //auto bbox_size_z = bbox.size.z;
 
-        auto bbox_center_x = bbox.center.position.x * ratioX + offsetX;
-        auto bbox_center_y = bbox.center.position.y * ratioY + offsetY;
+        auto bbox_center_x = bbox.center.position.x;
+        auto bbox_center_y = bbox.center.position.y;
+        auto bbox_center_z = bbox.center.position.z;
+
         visualization_msgs::msg::Marker box_marker;
         box_marker.header.frame_id = info->header.frame_id;
         box_marker.header.stamp = this->get_clock()->now();
@@ -86,7 +86,7 @@ void SpatialBB::overlayCB(const sensor_msgs::msg::Image::ConstSharedPtr& preview
         box_marker.type = visualization_msgs::msg::Marker::LINE_STRIP;
         box_marker.action = visualization_msgs::msg::Marker::ADD;
 
-        box_marker.scale.x = 0.05;  // Line width
+        box_marker.scale.x = 0.02;  // Marker line width
         box_marker.color.g = 1.0;
         box_marker.color.a = 1.0;
 
@@ -94,20 +94,24 @@ void SpatialBB::overlayCB(const sensor_msgs::msg::Image::ConstSharedPtr& preview
         geometry_msgs::msg::Point32 corners[4];
         corners[0].x = bbox_center_x - bbox_size_x / 2.0;
         corners[0].y = bbox_center_y - bbox_size_y / 2.0;
+        corners[0].z = bbox_center_z;
         corners[1].x = bbox_center_x + bbox_size_x / 2.0;
         corners[1].y = bbox_center_y - bbox_size_y / 2.0;
+        corners[1].z = bbox_center_z;
         corners[2].x = bbox_center_x + bbox_size_x / 2.0;
         corners[2].y = bbox_center_y + bbox_size_y / 2.0;
+        corners[2].z = bbox_center_z;
         corners[3].x = bbox_center_x - bbox_size_x / 2.0;
         corners[3].y = bbox_center_y + bbox_size_y / 2.0;
+        corners[3].z = bbox_center_z;
+
         // The polygon points are a rectangle, so we need 5 points to close the loop
         box_marker.points.resize(5);
         for(int i = 0; i < 4; ++i) {
             auto& point = corners[i];
-            point.z = detection.results[0].pose.pose.position.z;
-            box_marker.points[i].x = (point.x - cx) * point.z / fx;
-            box_marker.points[i].y = (point.y - cy) * point.z / fy;
-            box_marker.points[i].z = point.z;  // assuming depth_val is in millimeters
+            box_marker.points[i].x = point.x;
+            box_marker.points[i].y = point.y;
+            box_marker.points[i].z = point.z;
         }
         // Repeat the first point to close the loop
         box_marker.points[4] = box_marker.points[0];
@@ -134,13 +138,19 @@ void SpatialBB::overlayCB(const sensor_msgs::msg::Image::ConstSharedPtr& preview
         text_marker.pose.position.z = box_marker.points[0].z + 0.1;  // Adjust this value to position the text above the box
 
         // Set the text to the detection label
-        text_marker.text = labelMap[stoi(detection.results[0].hypothesis.class_id)];
+        std::stringstream markerStr;
+        markerStr << labelStr << ":" << std::fixed << std::setprecision(0) << confidence * 100 << "%";
+        text_marker.text = markerStr.str(); //labelMap[stoi(detection.results[0].hypothesis.class_id)];
+
         marker_array.markers.push_back(text_marker);
     }
+
+    // Publish the marker array (topic "/spatial_bb") for limited 3D visualization:
     markerPub->publish(marker_array);
+
+    // Overlay image publishing (topic "/overlay") for 2D visualization:
     sensor_msgs::msg::Image outMsg;
     cv_bridge::CvImage(preview->header, sensor_msgs::image_encodings::BGR8, previewMat).toImageMsg(outMsg);
-
     overlayPub->publish(outMsg);
 }
 

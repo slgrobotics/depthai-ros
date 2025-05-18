@@ -15,11 +15,11 @@ cv::Mat msgToMat(const rclcpp::Logger& logger, const sensor_msgs::msg::Image::Co
     return mat;
 }
 void addTextToFrame(cv::Mat& frame, const std::string& text, int x, int y) {
-    auto white = cv::Scalar(255, 255, 255);
-    auto black = cv::Scalar(0, 0, 0);
+    auto bg = cv::Scalar(200, 200, 200);
+    auto fg = cv::Scalar(50, 50, 50);
 
-    cv::putText(frame, text, cv::Point(x, y), cv::FONT_HERSHEY_TRIPLEX, 0.5, white, 3);
-    cv::putText(frame, text, cv::Point(x, y), cv::FONT_HERSHEY_TRIPLEX, 0.5, black);
+    cv::putText(frame, text, cv::Point(x, y), cv::FONT_HERSHEY_DUPLEX, 0.4, bg, 3);
+    cv::putText(frame, text, cv::Point(x, y), cv::FONT_HERSHEY_DUPLEX, 0.4, fg);
 }
 }  // namespace utils
 }  // namespace depthai_filters
