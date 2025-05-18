@@ -32,6 +32,9 @@ class SpatialBB : public rclcpp::Node {
                                          "car",        "cat",       "chair",       "cow",   "diningtable", "dog",    "horse",
                                          "motorbike",  "person",    "pottedplant", "sheep", "sofa",        "train",  "tvmonitor"};
     bool desqueeze = false;
+
+  private:
+    int last_marker_count_ = 0;
 };
 
 }  // namespace depthai_filters

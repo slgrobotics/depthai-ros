@@ -126,7 +126,7 @@ void SpatialBB::overlayCB(const sensor_msgs::msg::Image::ConstSharedPtr& preview
         text_marker.type = visualization_msgs::msg::Marker::TEXT_VIEW_FACING;
         text_marker.action = visualization_msgs::msg::Marker::ADD;
 
-        text_marker.scale.z = 0.3;  // Text size
+        text_marker.scale.z = 0.1;  // Text size
         text_marker.color.r = 1.0;
         text_marker.color.g = 1.0;
         text_marker.color.b = 1.0;
@@ -140,10 +140,33 @@ void SpatialBB::overlayCB(const sensor_msgs::msg::Image::ConstSharedPtr& preview
         // Set the text to the detection label
         std::stringstream markerStr;
         markerStr << labelStr << ":" << std::fixed << std::setprecision(0) << confidence * 100 << "%";
-        text_marker.text = markerStr.str(); //labelMap[stoi(detection.results[0].hypothesis.class_id)];
+        text_marker.text = markerStr.str();
 
         marker_array.markers.push_back(text_marker);
     }
+
+    int current_marker_count = id;
+
+    // Delete old markers if needed, they are not deleted automatically:
+    for(int old_id = current_marker_count; old_id < last_marker_count_; ++old_id) {
+        visualization_msgs::msg::Marker delete_marker;
+        delete_marker.header.frame_id = info->header.frame_id;
+        delete_marker.header.stamp = this->get_clock()->now();
+        delete_marker.ns = "detections";
+        delete_marker.id = old_id;
+        delete_marker.action = visualization_msgs::msg::Marker::DELETE;
+        marker_array.markers.push_back(delete_marker);
+
+        // Also delete label markers
+        visualization_msgs::msg::Marker delete_label_marker;
+        delete_label_marker.header.frame_id = info->header.frame_id;
+        delete_label_marker.header.stamp = this->get_clock()->now();
+        delete_label_marker.ns = "detections_label";
+        delete_label_marker.id = old_id;
+        delete_label_marker.action = visualization_msgs::msg::Marker::DELETE;
+        marker_array.markers.push_back(delete_label_marker);
+    }
+    last_marker_count_ = current_marker_count;
 
     // Publish the marker array (topic "/spatial_bb") for limited 3D visualization:
     markerPub->publish(marker_array);
