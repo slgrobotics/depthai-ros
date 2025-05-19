@@ -1,15 +1,66 @@
+# see https://github.com/luxonis/depthai-ros/issues/504
+#     https://docs.luxonis.com/software/ros/depthai-ros/driver#DepthAI%20ROS%20Driver-List%20of%20parameters
+#
+# Note: PointCloud2 traffic - 800 Mbits/s
+#       Images and Detection - 10 Mbits/s
+
 /oak:
   ros__parameters:
+    pipeline_gen:
+      i_enable_diagnostics: true
+      i_enable_imu: false
     camera:
+      #i_tf_parent_frame: oak-d-base-frame
+      i_enable_diagnostics: true
+      #i_calibration_dump: true
+      #i_enable_ir: true
+      i_pipeline_type: RGBD
+      #i_publish_tf_from_calibration: true
+      #i_tf_imu_from_descr: 'true'
+      #i_usb_speed: HIGH
       i_nn_type: spatial
+    left:
+      i_height: 400
+      i_width: 640
+      i_fps: 5.0
+      i_low_bandwidth: true
+      i_low_bandwidth_quality: 50
+    right:
+      i_height: 400
+      i_width: 640
+      i_fps: 5.0
+      i_low_bandwidth: true
+      i_low_bandwidth_quality: 50
     rgb:
-      i_enable_preview: true
-      i_keep_preview_aspect_ratio: false
-    nn:
-      i_enable_passthrough: true
-      i_disable_resize: true
+      i_resolution: '1080P'
+      #i_isp_den: 3
+      #i_isp_num: 2
+      #i_output_isp: true
+      i_fps: 5.0
+      i_enable_preview: true # needed for /overlay topic
+      #i_keep_preview_aspect_ratio: false
+      i_low_bandwidth: true
+      i_low_bandwidth_quality: 50
+      #i_publish_topic: true
     stereo:
-      i_subpixel: true
+      #i_publish_topic: true
+      #i_reverse_stereo_socket_order: true
+      #i_publish_synced_rect_pair: true
+      #i_publish_left_rect: true
+      #i_publish_right_rect: true
+      i_update_ros_base_time_on_ros_msg: false
+      #i_align_depth: true
+      i_resolution: '400P'
+      i_subpixel: true  # if false, PointCloud will be sliced into 2D planes
+      #i_low_bandwidth: true # "false" also disables i_subpixel
+      #i_low_bandwidth_quality: 50
+    nn:
+      #i_enable_passthrough: true
+      i_disable_resize: true
+      #i_nn_config_path: depthai_ros_driver/mobilenet
+
+    use_sim_time: false
+
 /spatial_bb_node:
   ros__parameters:
     desqueeze: true
